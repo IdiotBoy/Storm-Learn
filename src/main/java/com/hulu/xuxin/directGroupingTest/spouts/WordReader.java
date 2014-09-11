@@ -1,9 +1,10 @@
-package spouts;
+package com.hulu.xuxin.directGroupingTest.spouts;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Map;
+
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -16,23 +17,22 @@ public class WordReader extends BaseRichSpout {
 	private SpoutOutputCollector collector;
 	private FileReader fileReader;
 	private boolean completed = false;
+	
+	@Override
 	public void ack(Object msgId) {
-		System.out.println("OK:"+msgId);
+		System.out.println("OK: " + msgId);
 	}
+	
+	@Override
 	public void close() {}
+	
+	@Override
 	public void fail(Object msgId) {
-		System.out.println("FAIL:"+msgId);
+		System.out.println("FAIL: " + msgId);
 	}
 
-	/**
-	 * The only thing that the methods will do It is emit each 
-	 * file line
-	 */
+	@Override
 	public void nextTuple() {
-		/**
-		 * The nextuple it is called forever, so if we have been readed the file
-		 * we will wait and then return
-		 */
 		if(completed){
 			try {
 				Thread.sleep(1000);
@@ -41,40 +41,30 @@ public class WordReader extends BaseRichSpout {
 			}
 			return;
 		}
-		String str;
-		//Open the reader
+		
 		BufferedReader reader = new BufferedReader(fileReader);
 		try{
-			//Read all lines
+			String str;
 			while((str = reader.readLine()) != null){
-				/**
-				 * By each line emmit a new value with the line as a their
-				 */
-				this.collector.emit(new Values(str),str);
+				this.collector.emit(new Values(str), str);
 			}
 		}catch(Exception e){
-			throw new RuntimeException("Error reading tuple",e);
+			throw new RuntimeException("Error reading tuple", e);
 		}finally{
 			completed = true;
 		}
 	}
 
-	/**
-	 * We will create the file and get the collector object
-	 */
-	public void open(Map conf, TopologyContext context,
-			SpoutOutputCollector collector) {
+	@Override
+	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		try {
 			this.fileReader = new FileReader(conf.get("wordsFile").toString());
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Error reading file ["+conf.get("wordFile")+"]");
+			throw new RuntimeException("Error reading file [" + conf.get("wordFile") + "]");
 		}
 		this.collector = collector;
 	}
 
-	/**
-	 * Declare the output field "word"
-	 */
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("line"));
 	}
