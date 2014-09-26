@@ -26,7 +26,7 @@ public class TopologyMain {
         //Topology run
 		LocalCluster cluster = new LocalCluster();
 		cluster.submitTopology("Getting-Started-Toplogie", conf, builder.createTopology());
-		Thread.sleep(5000);
+		Thread.sleep(15000);
 		cluster.shutdown();
 	}
 }

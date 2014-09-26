@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Map;
+import java.util.Random;
+
+import org.apache.commons.collections.map.StaticBucketMap;
 
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -11,8 +14,9 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
-public class WordReader extends BaseRichSpout {
+public class WordSpout extends BaseRichSpout {
 
 	private SpoutOutputCollector collector;
 	private FileReader fileReader;
@@ -33,35 +37,15 @@ public class WordReader extends BaseRichSpout {
 
 	@Override
 	public void nextTuple() {
-		if(completed){
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				//Do nothing
-			}
-			return;
-		}
-		
-		BufferedReader reader = new BufferedReader(fileReader);
-		try{
-			String str;
-			while((str = reader.readLine()) != null){
-				this.collector.emit(new Values(str), str);
-			}
-		}catch(Exception e){
-			throw new RuntimeException("Error reading tuple", e);
-		}finally{
-			completed = true;
-		}
+		Utils.sleep(10);
+		String[] words = { "nathan", "mike", "jackson", "golda", "bertels" };
+		Random rand = new Random();
+		String word = words[rand.nextInt(words.length)];
+		this.collector.emit(new Values(new Object[] { word }));
 	}
 
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-		try {
-			this.fileReader = new FileReader(conf.get("wordsFile").toString());
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Error reading file [" + conf.get("wordFile") + "]");
-		}
 		this.collector = collector;
 	}
 

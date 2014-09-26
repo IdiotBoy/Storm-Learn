@@ -19,7 +19,6 @@ package com.hulu.xuxin.stormStarter;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
-import backtype.storm.StormSubmitter;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.testing.TestWordSpout;
@@ -33,8 +32,7 @@ import backtype.storm.utils.Utils;
 
 import java.util.Map;
 
-import ch.qos.logback.classic.Logger;
-import clojure.string__init;
+import com.hulu.xuxin.directGroupingTest.spouts.WordReader;
 
 /**
  * This is a basic example of a Storm topology.
@@ -66,12 +64,18 @@ public class ExclamationTopology {
   public static void main(String[] args) throws Exception {
     TopologyBuilder builder = new TopologyBuilder();
 
-    builder.setSpout("word", new TestWordSpout(), 10);
-    builder.setBolt("exclaim1", new ExclamationBolt(), 3).shuffleGrouping("word");
-    builder.setBolt("exclaim2", new ExclamationBolt(), 2).shuffleGrouping("exclaim1");
+    builder.setSpout("word", new WordReader());
+    builder.setBolt("exclaim1", new ExclamationBolt()).shuffleGrouping("word", "aa");
+    builder.setBolt("exclaim2", new ExclamationBolt()).shuffleGrouping("word");
 
     Config conf = new Config();
+    conf.put("wordsFile", "src/main/resources/words2.txt");
     conf.setDebug(true);
-    StormSubmitter.submitTopologyWithProgressBar("ExclamationTopology", conf, builder.createTopology());
+    //StormSubmitter.submitTopologyWithProgressBar("ExclamationTopology", conf, builder.createTopology());
+    LocalCluster cluster = new LocalCluster();
+    cluster.submitTopology("test", conf, builder.createTopology());
+    Utils.sleep(10000);
+    cluster.killTopology("test");
+    cluster.shutdown();
   }
 }

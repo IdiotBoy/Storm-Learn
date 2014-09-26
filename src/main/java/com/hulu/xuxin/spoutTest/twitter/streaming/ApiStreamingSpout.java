@@ -59,12 +59,12 @@ public class ApiStreamingSpout extends BaseRichSpout{
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				String in;
 				//Read line by line
-				while((in = reader.readLine())!=null){
-					try{
+				while ((in = reader.readLine())!=null) {
+					try {
 						//Parse and emit
 						Object json = jsonParser.parse(in);
 						collector.emit(new Values(track,json));
-					}catch (ParseException e) {
+					} catch (ParseException e) {
 						LOG.error("Error parsing message from twitter",e);
 					}
 				}
